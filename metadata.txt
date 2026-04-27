@@ -1,0 +1,9 @@
+
+--- Report for IMG_20260427_104626.jpg ---
+Device:   Xiaomi 2201116TG
+Software: MediaTek Camera Application", "", "", "",
+Captured: 2026-04-27 10:46:26
+Location: 34°46'08.7"N 01°56'46.6"W
+Decimal:  34.769089, -1.946267
+Maps Link: https://www.google.com/maps?q=34.76908888888889,-1.9462666666666666
+

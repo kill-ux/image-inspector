@@ -1,9 +1,9 @@
 use anyhow::Result;
 use clap::Parser;
-use image_inspector::{Cli, metadata, stegano};
+use image_inspector::{cli, metadata, stegano};
 
 fn main() -> Result<()> {
-    let cli = Cli::parse();
+    let cli = cli::Cli::parse();
 
     if !cli.metadata && !cli.steganography {
         eprintln!("Please specify at least one analysis option: --metadata or --steganography");
