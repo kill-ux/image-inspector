@@ -14,6 +14,7 @@ fn main() -> Result<()> {
     // --- Metadata mode ---
     if cli.metadata {
         println!("[*] Extracting metadata from: {}", cli.image);
+        println!("================================================");
         match metadata::extract(&cli.image) {
             Ok(data) => {
                 println!("{}", data);
