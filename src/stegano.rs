@@ -1,54 +1,49 @@
-// use anyhow::{Result, bail};
-// use image::Rgb;
-
-// /// Steganography analysis module for extracting hidden data from images.
-// pub fn extract(path: &str) -> Result<String> {
-//     let img = image::open(path)?;
-
-//     // collect LSBs from RGB channels
-//     let rgb = img.to_rgb8();
-//     let mut bits = Vec::new();
-//     let mut len = 0;
-//     for Rgb([r, g, b]) in rgb.pixels() {
-//         bits.push(r & 1);
-//         bits.push(g & 1);
-//         bits.push(b & 1);
-//         len += 3;
-//     }
-//     println!("[*] Extracted {} bits from the image", len); // 14747856
-
-//     // group evry 8 bits into a byte
-//     let mut msg = String::new();
-//     for (i, chunk) in bits.chunks(8).enumerate() {
-//         if i % 100000 == 0 {
-//             println!("[*] Processed {} bits...", i);
-//         }
-//         if chunk.len() < 8 {
-//             break;
-//         }
-
-//         let byte = chunk.iter().fold(0, |acc, bit| acc << 1 | bit);
-
-//         if byte.is_ascii() {
-//             msg.push(byte as char);
-//         }
-//         if msg.contains("-----END PGP PUBLIC KEY BLOCK-----") {
-//             break;
-//         }
-//     }
-
-//     if msg.contains("-----BEGIN PGP PUBLIC KEY BLOCK-----") {
-//         Ok(msg)
-//     } else {
-//         bail!("No hidden data found using LSB steganography")
-//     }
-// }
-
-
-use anyhow::{bail, Result};
+use anyhow::{Result, bail};
 use image::Rgb;
+use std::fs;
 
+const START_MARKER: &str = "-----BEGIN PGP PUBLIC KEY BLOCK-----";
+const END_MARKER: &str = "-----END PGP PUBLIC KEY BLOCK-----";
+
+/// High-level orchestrator that tries different steganography detection methods.
 pub fn extract(path: &str) -> Result<String> {
+    if let Ok(data) = extract_trailing_data(path) {
+        println!("[+] Data found using EOF Appending analysis.");
+        return Ok(data);
+    }
+
+    println!("[*] No trailing data found. Attempting deep LSB scan...");
+
+    match extract_lsb(path) {
+        Ok(data) => {
+            println!("[+] Data found using LSB pixel analysis.");
+            Ok(data)
+        }
+        Err(e) => bail!("Steganography detection failed: {}", e),
+    }
+}
+
+/// Detects hidden data appended after the image's EOF (End of File) marker.
+///
+/// This is a common, simple technique where data is tacked onto the end of the file
+/// byte-stream, which image viewers typically ignore.
+pub fn extract_trailing_data(path: &str) -> Result<String> {
+    let bytes = fs::read(path)?;
+    let content = String::from_utf8_lossy(&bytes);
+
+    if let Some(start_index) = content.find(START_MARKER) {
+        if let Some(end_index) = content.find(END_MARKER) {
+            return Ok(content[start_index..end_index + END_MARKER.len()].to_string());
+        }
+    }
+    bail!("No trailing data markers found.")
+}
+
+/// Detects hidden data embedded within the Least Significant Bits of the image pixels.
+///
+/// This method iterates through every RGB pixel, extracts the lowest bit of each channel,
+/// and reconstructs them into ASCII characters.
+pub fn extract_lsb(path: &str) -> Result<String> {
     let img = image::open(path)?;
     let rgb = img.to_rgb8();
 
@@ -63,25 +58,21 @@ pub fn extract(path: &str) -> Result<String> {
                 let byte: u8 = bits.iter().fold(0u8, |acc, b| acc << 1 | b);
                 bits.clear();
 
-                if byte.is_ascii() {
+                if (32..=126).contains(&byte) || byte == 10 || byte == 13 {
                     msg.push(byte as char);
                 }
 
-                if msg.len() >= 40 {
-                    let tail = &msg[msg.len() - 40..];
-                    if tail.contains("-----END PGP PUBLIC KEY BLOCK-----") {
-                        break;
+                // Optimization: Only check for markers once the message is large enough
+                if msg.len() >= END_MARKER.len() {
+                    let tail = &msg[msg.len() - END_MARKER.len()..];
+                    if tail.contains(END_MARKER) {
+                        if let Some(s_idx) = msg.find(START_MARKER) {
+                            return Ok(msg[s_idx..].to_string());
+                        }
                     }
                 }
             }
         }
     }
-    println!("msg: {}", msg);
-
-
-    if msg.contains("-----BEGIN PGP PUBLIC KEY BLOCK-----") {
-        Ok(msg)
-    } else {
-        bail!("No hidden data found using LSB steganography")
-    }
+    bail!("No PGP keys detected in the pixel bit-planes.")
 }
