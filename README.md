@@ -1,6 +1,5 @@
-# image-inspector
-https://gchq.github.io/CyberChef/#recipe=Extract_LSB('R','G','B','','Row',0)
-https://stylesuxx.github.io/steganography/
+
+
 # Image Inspector 🕵️‍♂️
 
 A high-performance digital forensics tool written in **Rust**, designed to analyze images for hidden metadata and steganographic data. 
@@ -9,7 +8,7 @@ This tool assists cybersecurity professionals in identifying concealed informati
 
 <img src="https://media.wired.com/photos/594db1736b76bb7625b89e48/16:9/w_4991,h_2807,c_limit/hidden_data-01.png" width="40%">
 
-## 🌟 Features
+## Features
 
 - **Metadata Extraction**: Retrieves EXIF data including device make/model, software versions, and capture timestamps.
 - **GPS Forensics**: Extracts geolocation coordinates with DMS (Degrees, Minutes, Seconds) formatting.
@@ -17,7 +16,7 @@ This tool assists cybersecurity professionals in identifying concealed informati
   - **LSB Pixel Analysis**: Performs bit-plane analysis on RGB channels to find data hidden within the least significant bits.
   - **EOF Appending Analysis**: Detects data injected after the End-of-File marker (e.g., JPEG EOI `FF D9`).
 
-## 🛠 Prerequisites
+## Prerequisites
 
 To build and run this tool, you need the **Rust toolchain** (v1.70+) installed:
 
@@ -25,7 +24,7 @@ To build and run this tool, you need the **Rust toolchain** (v1.70+) installed:
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 ```
 
-## 🚀 Installation & Setup
+## Installation & Setup
 
 1. Clone the repository:
 
@@ -42,7 +41,7 @@ cargo build --release
 
 3. Run the binary located at `./target/release/image-inspector`.
 
-## 📖 Usage
+## Usage
 
 ### Command Line Interface
 
@@ -95,7 +94,7 @@ Data saved in hidden_data.txt
 $> ./image-inspector -m -s -o full_report.txt image.jpeg
 ```
 
-## ⚖️ Ethical & Legal Considerations
+## Ethical & Legal Considerations
 
 > **IMPORTANT: READ CAREFULLY BEFORE USE.**
 
@@ -104,7 +103,7 @@ $> ./image-inspector -m -s -o full_report.txt image.jpeg
 3. **Legal Implications**: Analyzing digital media without consent can be considered a criminal offense in many jurisdictions. This tool is intended for educational and authorized forensic purposes only.
 4. **No Malice**: Do not use this tool to bypass security controls or facilitate unauthorized data exfiltration.
 
-## 📂 Project Structure
+## Project Structure
 
 ```
 image-inspector/
@@ -120,9 +119,15 @@ image-inspector/
     └── stegano.rs
 ```
 
-## 🧪 Technical Notes
+## Technical Notes
 
 - **LSB Logic**: Extracts the least significant bit from R, G, and B channels sequentially across all pixels (Big-Endian bit packing).
 - **EOF Logic**: Scans for the JPEG End-of-File marker `FF D9` and reads any data appended after it.
 
+###  res
+- https://gchq.github.io/CyberChef/#recipe=Extract_LSB('R','G','B','','Row',0)
+- https://stylesuxx.github.io/steganography/
+
 > **Disclaimer**: The developers of Image Inspector are not responsible for any misuse of this tool. Use it at your own risk and within the legal boundaries of your jurisdiction.
+
+
