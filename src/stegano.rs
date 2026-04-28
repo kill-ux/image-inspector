@@ -6,7 +6,7 @@ const START_MARKER: &str = "-----BEGIN PGP PUBLIC KEY BLOCK-----";
 const END_MARKER: &str = "-----END PGP PUBLIC KEY BLOCK-----";
 
 /// High-level orchestrator that tries different steganography detection methods.
-pub fn extract(path: &str) -> Result<String> {
+pub fn extract(path: &str, print_garbage: bool) -> Result<String> {
     if let Ok(data) = extract_trailing_data(path) {
         println!("[+] Data found using EOF Appending analysis.");
         return Ok(data);
@@ -14,7 +14,7 @@ pub fn extract(path: &str) -> Result<String> {
 
     println!("[*] No trailing data found. Attempting deep LSB scan...");
 
-    match extract_lsb(path) {
+    match extract_lsb(path, print_garbage) {
         Ok(data) => {
             println!("[+] Data found using LSB pixel analysis.");
             Ok(data)
@@ -43,7 +43,7 @@ pub fn extract_trailing_data(path: &str) -> Result<String> {
 ///
 /// This method iterates through every RGB pixel, extracts the lowest bit of each channel,
 /// and reconstructs them into ASCII characters.
-pub fn extract_lsb(path: &str) -> Result<String> {
+pub fn extract_lsb(path: &str, print_garbage: bool) -> Result<String> {
     let img = image::open(path)?;
     let rgb = img.to_rgb8();
 
@@ -58,7 +58,7 @@ pub fn extract_lsb(path: &str) -> Result<String> {
                 let byte: u8 = bits.iter().fold(0u8, |acc, b| acc << 1 | b);
                 bits.clear();
 
-                if (32..=126).contains(&byte) || byte == 10 || byte == 13 {
+                if (32..=126).contains(&byte) || byte == 10 {
                     msg.push(byte as char);
                 }
 
@@ -74,5 +74,15 @@ pub fn extract_lsb(path: &str) -> Result<String> {
             }
         }
     }
-    bail!("No PGP keys detected in the pixel bit-planes.")
+
+    if print_garbage {
+        println!(
+            "[*] LSB analysis complete. No valid PGP key found, but extracted the following printable text:"
+        );
+        println!("--- BEGIN GARBAGE DATA ---");
+        println!("{}", msg);
+        println!("--- END GARBAGE DATA ---");
+    }
+
+    bail!("[!] No significant hidden data detected in LSB analysis.");
 }

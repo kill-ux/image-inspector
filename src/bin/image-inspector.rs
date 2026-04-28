@@ -1,19 +1,21 @@
 use anyhow::Result;
 use clap::Parser;
+use colored::Colorize;
 use image_inspector::{cli, metadata, stegano};
 
 fn main() -> Result<()> {
     let cli = cli::Cli::parse();
 
     if !cli.metadata && !cli.steganography {
-        eprintln!("Please specify at least one analysis option: --metadata or --steganography");
+        eprintln!("{}", "Please specify at least one analysis option: --metadata or --steganography".red().bold());
         std::process::exit(1);
     }
+
     let mut results = String::new();
 
     // --- Metadata mode ---
     if cli.metadata {
-        println!("[*] Extracting metadata from: {}", cli.image);
+        println!("{} {}", "[*] Extracting metadata from: ".white().bold(), cli.image.blue());
         println!("================================================");
         match metadata::extract(&cli.image) {
             Ok(data) => {
@@ -28,7 +30,7 @@ fn main() -> Result<()> {
     // --- Steganography mode ---
     if cli.steganography {
         println!("[*] Extracting hidden data from: {}", cli.image);
-        match stegano::extract(&cli.image) {
+        match stegano::extract(&cli.image, cli.garbage) {
             Ok(data) => {
                 println!("{}", data);
                 results.push_str(&data);
