@@ -30,8 +30,8 @@ pub struct Cli {
     pub output: Option<String>,
 
     /// print the garbage data in the LSB analysis
-    #[arg(long)]
-    pub garbage: bool,
+    #[arg(short,long)]
+    pub deep: bool,
 
     /// The image file to analyze
     pub image: String,

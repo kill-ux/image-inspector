@@ -30,7 +30,7 @@ fn main() -> Result<()> {
     // --- Steganography mode ---
     if cli.steganography {
         println!("[*] Extracting hidden data from: {}", cli.image);
-        match stegano::extract(&cli.image, cli.garbage) {
+        match stegano::extract(&cli.image, cli.deep) {
             Ok(data) => {
                 println!("{}", data);
                 results.push_str(&data);
