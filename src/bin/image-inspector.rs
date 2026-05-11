@@ -1,3 +1,5 @@
+use std::fs::File;
+
 use anyhow::Result;
 use clap::Parser;
 use colored::Colorize;
@@ -7,17 +9,27 @@ fn main() -> Result<()> {
     let cli = cli::Cli::parse();
 
     if !cli.metadata && !cli.steganography {
-        eprintln!("{}", "Please specify at least one analysis option: --metadata or --steganography".red().bold());
+        eprintln!(
+            "{}",
+            "Please specify at least one analysis option: --metadata or --steganography"
+                .red()
+                .bold()
+        );
         std::process::exit(1);
     }
 
     let mut results = String::new();
+    let fd = File::open(&cli.image)?;
 
     // --- Metadata mode ---
     if cli.metadata {
-        println!("{} {}", "[*] Extracting metadata from: ".white().bold(), cli.image.blue());
+        println!(
+            "{} {}",
+            "[*] Extracting metadata from: ".white().bold(),
+            cli.image.blue()
+        );
         println!("================================================");
-        match metadata::extract(&cli.image) {
+        match metadata::extract(fd, &cli.image) {
             Ok(data) => {
                 println!("{}", data);
                 results.push_str(&data);

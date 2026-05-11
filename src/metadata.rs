@@ -2,8 +2,7 @@ use std::{fs::File, io::BufReader};
 use anyhow::Result;
 use exif::{In, Reader, Tag, Value, Rational};
 
-pub fn extract(image: &str) -> Result<String> {
-    let fd = File::open(image)?;
+pub fn extract(fd: File, image: &str) -> Result<String> {
     let mut bufreader = BufReader::new(fd);
     let exif = Reader::new().read_from_container(&mut bufreader)?;
 
